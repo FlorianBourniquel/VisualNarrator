@@ -8,6 +8,7 @@ import pkg_resources
 
 from argparse import ArgumentParser
 import spacy
+import en_core_web_md
 from jinja2 import FileSystemLoader, Environment, PackageLoader
 
 from vn.io import Reader, Writer
@@ -22,7 +23,7 @@ from vn.statistics import Statistics, Counter
 def initialize_nlp():
 	# Initialize spaCy just once (this takes most of the time...)
 	print("Initializing Natural Language Processor. . .")
-	nlp = spacy.load('en')
+	nlp = en_core_web_md.load()
 	return nlp
 
 def main(filename, systemname, print_us, print_ont, statistics, link, prolog, json, per_role, threshold, base, weights, spacy_nlp):
