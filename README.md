@@ -57,6 +57,7 @@ Argument | Description
 `--prolog` | Output prolog arguments to a _.pl_ file. Combine with `--link` to reason about user stories
 `--json` | Output mined user stories to a _.json_ file.
 `--version` | Display the program's version number and exit
+`--split` | Process the stories one by one
 
 ###### Statistics
 Argument | Description

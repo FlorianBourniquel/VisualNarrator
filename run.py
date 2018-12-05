@@ -8,7 +8,6 @@ import pkg_resources
 
 from argparse import ArgumentParser
 import spacy
-import en_core_web_md
 from jinja2 import FileSystemLoader, Environment, PackageLoader
 
 from vn.io import Reader, Writer
@@ -23,7 +22,7 @@ from vn.statistics import Statistics, Counter
 def initialize_nlp():
 	# Initialize spaCy just once (this takes most of the time...)
 	print("Initializing Natural Language Processor. . .")
-	nlp = en_core_web_md.load()
+	nlp = spacy.load('en')
 	return nlp
 
 def main(filename, systemname, print_us, print_ont, statistics, link, prolog, json, per_role, threshold, base, weights, spacy_nlp):
@@ -252,18 +251,18 @@ def program(*args):
 ///////////////////////////////////////////
 
 This program has multiple functionalities:
-    (1) Mine user story information
-    (2) Generate an ontology from a user story set
-    (3) Generate Prolog from a user story set (including links to 'role', 'means' and 'ends')
-    (4) Get statistics for a user story set
+	(1) Mine user story information
+	(2) Generate an ontology from a user story set
+	(3) Generate Prolog from a user story set (including links to 'role', 'means' and 'ends')
+	(4) Get statistics for a user story set
 ''',
 		epilog='''{*} Utrecht University.
 			M.J. Robeer, 2015-2017''')
 
 	if "--return-args" not in args:
 		p.add_argument("filename",
-                     help="input file with user stories", metavar="INPUT FILE",
-                     type=lambda x: is_valid_file(p, x))
+					 help="input file with user stories", metavar="INPUT FILE",
+					 type=lambda x: is_valid_file(p, x))
 	p.add_argument('--version', action='version', version='Visual Narrator v0.9 BETA by M.J. Robeer')
 
 	g_p = p.add_argument_group("general arguments (optional)")
@@ -274,7 +273,7 @@ This program has multiple functionalities:
 	g_p.add_argument("--prolog", dest="prolog", help="generate prolog output (.pl)", action="store_true", default=False)
 	g_p.add_argument("--return-args", dest="return_args", help="return arguments instead of call VN", action="store_true", default=False)
 	g_p.add_argument("--json", dest="json", help="export user stories as json (.json)", action="store_true", default=False)
-
+	g_p.add_argument("--split", dest="split", help="Process the stories one by one", action="store_true", default=False)
 	s_p = p.add_argument_group("statistics arguments (optional)")
 	s_p.add_argument("-s", "--statistics", dest="statistics", help="show user story set statistics and output these to a .csv file", action="store_true", default=False)
 
@@ -299,15 +298,24 @@ This program has multiple functionalities:
 		args.system_name = "System"
 	if not args.return_args:
 		spacy_nlp = initialize_nlp()
-		return main(args.filename, args.system_name, args.print_us, args.print_ont, args.statistics, args.link, args.prolog, args.json, args.per_role, args.threshold, args.base_weight, weights, spacy_nlp)
+		if args.split:
+			stories = Reader.parse(args.filename)
+			for s in stories:
+				file = open('./tmp.txt', 'w+')
+				file.write(s)
+				file.close()
+				main(open('./tmp.txt', 'r'), args.system_name, args.print_us, args.print_ont, args.statistics, args.link, args.prolog, args.json, args.per_role, args.threshold, args.base_weight, weights, spacy_nlp)
+			return
+		else:
+			return main(args.filename, args.system_name, args.print_us, args.print_ont, args.statistics, args.link, args.prolog, args.json, args.per_role, args.threshold, args.base_weight, weights, spacy_nlp)
 	else:
 		return args
 
 def is_valid_file(parser, arg):
-    if not os.path.exists(arg):
-        parser.error("Could not find file " + str(arg) + "!")
-    else:
-        return open(arg, 'r')
+	if not os.path.exists(arg):
+		parser.error("Could not find file " + str(arg) + "!")
+	else:
+		return open(arg, 'r')
 
 
 if __name__ == "__main__":
